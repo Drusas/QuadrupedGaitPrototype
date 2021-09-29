@@ -41,15 +41,15 @@ def main(use_imu=False):
 
     # Wait until the activate button has been pressed
     while True:
-        print("Waiting for L1 to activate robot.")
-        while True:
-            command = joystick_interface.get_command(state)
-            joystick_interface.set_color(config.ps4_deactivated_color)
-            if command.activate_event == 1:
-                break
-            time.sleep(0.1)
-        print("Robot activated.")
-        joystick_interface.set_color(config.ps4_color)
+        # print("Waiting for L1 to activate robot.")
+        # while True:
+        #     command = joystick_interface.get_command(state)
+        #     joystick_interface.set_color(config.ps4_deactivated_color)
+        #     if command.activate_event == 1:
+        #         break
+        #     time.sleep(0.1)
+        # print("Robot activated.")
+        # joystick_interface.set_color(config.ps4_color)
 
         while True:
             now = time.time()
@@ -71,9 +71,11 @@ def main(use_imu=False):
 
             # Step the controller forward by dt
             controller.run(state, command)
+            print(f'{state.foot_locations}, {controller.gait_controller.contacts(state.ticks)}')
+            # print()
 
             # Update the pwm widths going to the servos
-            hardware_interface.set_actuator_postions(state.joint_angles)
+            # hardware_interface.set_actuator_postions(state.joint_angles)
 
-
-main()
+if __name__ == "__main__":
+    main()
