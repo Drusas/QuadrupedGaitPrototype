@@ -36,13 +36,12 @@ class StanceController:
             ]
         )
         delta_p = v_xy * self.config.dt
-        delta_R = euler2mat(0, 0, -command.yaw_rate * self.config.dt)
-        return (delta_p, delta_R)
+        return delta_p
 
     # TODO: put current foot location into state
     def next_foot_location(self, leg_index, state, command):
         foot_location = state.foot_locations[:, leg_index]
-        (delta_p, delta_R) = self.position_delta(leg_index, state, command)
-        incremented_location = delta_R @ foot_location + delta_p
+        delta_p = self.position_delta(leg_index, state, command)
+        incremented_location = foot_location + delta_p
 
         return incremented_location

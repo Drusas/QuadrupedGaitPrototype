@@ -15,14 +15,8 @@ class SwingController:
             * command.horizontal_velocity
         )
         delta_p = np.array([delta_p_2d[0], delta_p_2d[1], 0])
-        theta = (
-            self.config.beta
-            * self.config.stance_ticks
-            * self.config.dt
-            * command.yaw_rate
-        )
-        R = euler2mat(0, 0, theta)
-        return R @ self.config.default_stance[:, leg_index] + delta_p
+
+        return self.config.default_stance[:, leg_index] + delta_p
 
 
     def swing_height(self, swing_phase, triangular=True):

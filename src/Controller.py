@@ -5,9 +5,6 @@ from src.Utilities import clipped_first_order_filter
 from src.State import BehaviorState, State
 
 import numpy as np
-from transforms3d.euler import euler2mat, quat2euler
-from transforms3d.quaternions import qconjugate, quat2axangle
-from transforms3d.axangles import axangle2mat
 
 
 class Controller:
@@ -46,7 +43,6 @@ class Controller:
         new_foot_locations = np.zeros((3, 4))
         for leg_index in range(4):
             contact_mode = contact_modes[leg_index]
-            foot_location = state.foot_locations[:, leg_index]
             if contact_mode == 1:
                 new_location = self.stance_controller.next_foot_location(leg_index, state, command)
             else:
@@ -81,50 +77,11 @@ class Controller:
             state.behavior_state = self.hop_transition_mapping[state.behavior_state]
 
         if state.behavior_state == BehaviorState.TROT:
-            state.foot_locations, contact_modes = self.step_gait(
-                state,
-                command,
-            )
+            state.foot_locations, contact_modes = self.step_gait(state, command)
 
-            # Apply the desired body rotation
-            rotated_foot_locations = (
-                euler2mat(
-                    command.roll, command.pitch, 0.0
-                )
-                @ state.foot_locations
-            )
+            rotated_foot_locations = state.foot_locations
 
-            # Construct foot rotation matrix to compensate for body tilt
-            (roll, pitch, yaw) = quat2euler(state.quat_orientation)
-            correction_factor = 0.8
-            max_tilt = 0.4
-            roll_compensation = correction_factor * np.clip(roll, -max_tilt, max_tilt)
-            pitch_compensation = correction_factor * np.clip(pitch, -max_tilt, max_tilt)
-            rmat = euler2mat(roll_compensation, pitch_compensation, 0)
-
-            rotated_foot_locations = rmat.T @ rotated_foot_locations
-
-            state.joint_angles = self.inverse_kinematics(
-                rotated_foot_locations, self.config
-            )
-
-        elif state.behavior_state == BehaviorState.HOP:
-            state.foot_locations = (
-                self.config.default_stance
-                + np.array([0, 0, -0.09])[:, np.newaxis]
-            )
-            state.joint_angles = self.inverse_kinematics(
-                state.foot_locations, self.config
-            )
-
-        elif state.behavior_state == BehaviorState.FINISHHOP:
-            state.foot_locations = (
-                self.config.default_stance
-                + np.array([0, 0, -0.22])[:, np.newaxis]
-            )
-            state.joint_angles = self.inverse_kinematics(
-                state.foot_locations, self.config
-            )
+            state.joint_angles = self.inverse_kinematics(rotated_foot_locations, self.config)
 
         elif state.behavior_state == BehaviorState.REST:
             yaw_proportion = command.yaw_rate / self.config.max_yaw_rate
@@ -138,33 +95,11 @@ class Controller:
                 )
             )
             # Set the foot locations to the default stance plus the standard height
-            state.foot_locations = (
-                self.config.default_stance
-                + np.array([0, 0, command.height])[:, np.newaxis]
-            )
-            # Apply the desired body rotation
-            rotated_foot_locations = (
-                euler2mat(
-                    command.roll,
-                    command.pitch,
-                    self.smoothed_yaw,
-                )
-                @ state.foot_locations
-            )
-            state.joint_angles = self.inverse_kinematics(
-                rotated_foot_locations, self.config
-            )
+            state.foot_locations = (self.config.default_stance + np.array([0, 0, command.height])[:, np.newaxis] )
+            rotated_foot_locations = state.foot_locations
+            state.joint_angles = self.inverse_kinematics(rotated_foot_locations, self.config)
 
         state.ticks += 1
         state.pitch = command.pitch
         state.roll = command.roll
         state.height = command.height
-
-    def set_pose_to_default(self):
-        state.foot_locations = (
-            self.config.default_stance
-            + np.array([0, 0, self.config.default_z_ref])[:, np.newaxis]
-        )
-        state.joint_angles = controller.inverse_kinematics(
-            state.foot_locations, self.config
-        )

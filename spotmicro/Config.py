@@ -81,10 +81,11 @@ class Configuration:
         )
 
         ######################## GEOMETRY ######################
-        self.LEG_FB = 0.10  # front-back distance from center line to leg axis
-        self.LEG_LR = 0.04  # left-right distance from center line to leg plane
-        self.LEG_L2 = 0.115
-        self.LEG_L1 = 0.1235
+        # units are meters
+        self.LEG_FB = 0.095  # 0.10  # front-back distance from center line to leg axis
+        self.LEG_LR = 0.095  # left-right distance from center line to leg plane
+        self.LEG_L2 = 0.108  # 0.115
+        self.LEG_L1 = 0.132  # 0.1235
         self.ABDUCTION_OFFSET = 0.03  # distance from abduction axis to leg
         self.FOOT_RADIUS = 0.01
 

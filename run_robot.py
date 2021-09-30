@@ -4,9 +4,9 @@ from src.IMU import IMU
 from src.Controller import Controller
 from src.JoystickInterface import JoystickInterface
 from src.State import State
-from pupper.HardwareInterface import HardwareInterface
-from pupper.Config import Configuration
-from pupper.Kinematics import four_legs_inverse_kinematics
+from spotmicro.HardwareInterface import HardwareInterface
+from spotmicro.Config import Configuration
+from spotmicro.Kinematics import four_legs_inverse_kinematics
 
 def main(use_imu=False):
     """Main program
@@ -72,7 +72,7 @@ def main(use_imu=False):
             # Step the controller forward by dt
             controller.run(state, command)
             print(f'{state.foot_locations}, {controller.gait_controller.contacts(state.ticks)}')
-            # print()
+            print()
 
             # Update the pwm widths going to the servos
             # hardware_interface.set_actuator_postions(state.joint_angles)
