@@ -8,6 +8,14 @@ from spotmicro.HardwareInterface import HardwareInterface
 from spotmicro.Config import Configuration
 from spotmicro.Kinematics import four_legs_inverse_kinematics
 
+
+def convert_to_spot_leg_coords(foot_locations):
+
+    spot = [[0, 0, 0, 0], [60, 60, 60, 60], [220, 220, 220, 220]]
+    spot_locations = spot - foot_locations
+    return spot_locations
+
+
 def main(use_imu=False):
     """Main program
     """
@@ -39,6 +47,7 @@ def main(use_imu=False):
     print("z clearance: ", config.z_clearance)
     print("x shift: ", config.x_shift)
 
+    z_positions = np.empty(1)
     # Wait until the activate button has been pressed
     while True:
         # print("Waiting for L1 to activate robot.")
@@ -71,11 +80,18 @@ def main(use_imu=False):
 
             # Step the controller forward by dt
             controller.run(state, command)
+            print(f'{state.ticks}: ################# Controller #################')
             print(f'{state.foot_locations}, {controller.gait_controller.contacts(state.ticks)}')
-            print()
+            print(f'{state.ticks}: ################# Spot #################')
+            spot_foot_locations = convert_to_spot_leg_coords(state.foot_locations)
+            x = spot_foot_locations[2, 0]
+            z_positions = np.append(z_positions, x)
+            print(f'{spot_foot_locations}')
 
             # Update the pwm widths going to the servos
             # hardware_interface.set_actuator_postions(state.joint_angles)
 
 if __name__ == "__main__":
+    float_formatter = "{:.2f}".format
+    np.set_printoptions(formatter={'float_kind': float_formatter})
     main()
