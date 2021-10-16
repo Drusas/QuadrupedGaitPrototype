@@ -7,12 +7,13 @@ from src.State import State
 from spotmicro.HardwareInterface import HardwareInterface
 from spotmicro.Config import Configuration
 from spotmicro.Kinematics import four_legs_inverse_kinematics
-
+import matplotlib.pyplot as plt
 
 def convert_to_spot_leg_coords(foot_locations):
 
     spot = [[0, 0, 0, 0], [60, 60, 60, 60], [220, 220, 220, 220]]
-    spot_locations = spot - foot_locations
+    # spot_locations = spot - foot_locations
+    spot_locations = foot_locations
     return spot_locations
 
 
@@ -47,6 +48,8 @@ def main(use_imu=False):
     print("z clearance: ", config.z_clearance)
     print("x shift: ", config.x_shift)
 
+    x_positions = np.empty(1)
+    y_positions = np.empty(1)
     z_positions = np.empty(1)
     # Wait until the activate button has been pressed
     while True:
@@ -80,13 +83,25 @@ def main(use_imu=False):
 
             # Step the controller forward by dt
             controller.run(state, command)
-            print(f'{state.ticks}: ################# Controller #################')
-            print(f'{state.foot_locations}, {controller.gait_controller.contacts(state.ticks)}')
-            print(f'{state.ticks}: ################# Spot #################')
+            # print(f'{state.ticks}: ################# Controller #################')
+            # print(f'{state.foot_locations}, {controller.gait_controller.contacts(state.ticks)}')
+            # print(f'{state.ticks}: ################# Spot #################')
             spot_foot_locations = convert_to_spot_leg_coords(state.foot_locations)
+            x = spot_foot_locations[0, 0]
+            x_positions = np.append(x_positions, x)
+            x = spot_foot_locations[1, 0]
+            y_positions = np.append(y_positions, x)
             x = spot_foot_locations[2, 0]
             z_positions = np.append(z_positions, x)
-            print(f'{spot_foot_locations}')
+            if state.ticks % 400 == 0:
+                plt.subplot(211)
+                x_positions[0] = 0
+                plt.plot(x_positions, label="x")
+                # plt.plot(y_positions, label="y")
+                z_positions[0] = 0
+                # plt.plot(z_positions, label="z")
+                plt.show()
+            # print(f'{spot_foot_locations}')
 
             # Update the pwm widths going to the servos
             # hardware_interface.set_actuator_postions(state.joint_angles)

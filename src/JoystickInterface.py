@@ -28,7 +28,7 @@ class JoystickInterface:
             gait_toggle = 1
             command.trot_event = (gait_toggle == 1 and self.previous_gait_toggle == 0)
             self.previous_gait_toggle = 1
-            command.horizontal_velocity = np.array([0.4, 0.0])
+            command.horizontal_velocity = np.array([0.5, 0.0])
             return command
 
             # ####### Handle discrete commands ########
